@@ -9,6 +9,9 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define version 2.1 // version
 
@@ -84,7 +87,7 @@ public:
     void setup(vector <int>);
     void set_values(vector <double>);
     void mutate();
-    vector <double> cycle_network();
+    void cycle_network();
 };
 
 void network::print_info()
@@ -262,7 +265,7 @@ void network::mutate()
     }
 }
 
-vector <double> network::cycle_network()
+void network::cycle_network()
 {
     if (debug) cout << "cycle starting: " << cycle << endl;
     vector <vector <double> > temp_inputs;
@@ -344,6 +347,4 @@ vector <double> network::cycle_network()
     }
     if (debug) cout << "cycle complete\n" << endl;
     cycle++;
-    
-    return outputs;
 }

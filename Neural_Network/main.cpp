@@ -6,9 +6,6 @@ TODO:
 */
 
 #include <iostream>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "neural_network.hpp"
 
@@ -62,10 +59,12 @@ int main()
     net.set_values(inputs);
     //net.import_weights_from_file("");
     
-    int run = 0;
-    while (run < max_rounds) {
+    int run = 1;
+    while (run <= max_rounds) {
+        net.mutate();
         cout << "cycle: " << run << endl;
-        outputs = net.cycle_network();
+        net.cycle_network();
+        outputs = net.outputs;
         //net.export_weights_to_file();
         print_error();
         run++;
