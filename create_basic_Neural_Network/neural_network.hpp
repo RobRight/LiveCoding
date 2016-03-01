@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <fstream>
 #include <string>
+#include <iomanip>
+
+#define version 2.1 // version
 
 #define LYRAND (double)rand()/RAND_MAX
 
@@ -68,10 +71,12 @@ public:
     vector <layer> layers;
     vector <int> node_count;
     
+    void print_info();
+    void weights_info(string);
+    
     vector <vector <vector <double> > > parse_input_file(string);
     vector <vector <vector <double> > > export_weights();
     void import_weights(vector <vector <vector <double> > >);
-    void import_network(string);
     
     void export_weights_to_file();
     void import_weights_from_file(string);
@@ -81,6 +86,22 @@ public:
     void mutate();
     vector <double> cycle_network();
 };
+
+void network::print_info()
+{
+    cout << endl;
+    cout << "------------------------------" << endl;
+    cout << endl;
+    cout << "Neural Network" << endl;
+    cout << "version " << version << endl;
+    cout << endl;
+    cout << "Input nodes: " << node_count.at(0) << endl;
+    cout << "Output nodes: " << node_count.at(node_count.size()-1) << endl;
+    cout << "Hidden layers: " << node_count.size()-2 << endl;
+    cout << endl;
+    cout << "------------------------------" << endl;
+    cout << endl;
+}
 
 vector <vector <vector <double> > > network::parse_input_file(string file_name)
 {
@@ -116,6 +137,16 @@ vector <vector <vector <double> > > network::parse_input_file(string file_name)
     return temp;
 }
 
+void network::weights_info(string file_name)
+{
+    cout << endl;
+    cout << "weight file info" << endl;
+    vector <vector <vector <double> > > temp = parse_input_file(file_name);
+    for (int l=0; l<temp.size(); l++) {
+        cout << "nodes: " << temp.at(l).size() << endl;
+    }
+}
+
 vector <vector <vector <double> > > network::export_weights()
 {
     vector <vector <vector <double> > > temp;
@@ -131,23 +162,9 @@ vector <vector <vector <double> > > network::export_weights()
 
 void network::import_weights(vector <vector <vector <double> > > given_weights)
 {
-    cout << "size: " << given_weights.size() << endl;
     for (int l=0; l<layers.size()-1; l++) {
-        cout << "size2: " << given_weights.at(l).size() << endl;
         for (int n=0; n<layers.at(l).nodes.size(); n++) {
-            cout << given_weights.at(l).at(n).size() << endl;
             layers.at(l).nodes.at(n).weights = given_weights.at(l).at(n);
-        } cout << endl;
-    }
-}
-
-void network::import_network(string file_name)
-{
-    vector <vector <vector <double> > > temp = parse_input_file(file_name);
-    vector <int> temp_node_count;
-    for (int l=0; l<temp.size(); l++) {
-        for (int n=0; n<temp.at(l).size(); n++) {
-            // not finished
         }
     }
 }
@@ -160,7 +177,7 @@ void network::export_weights_to_file()
     for (int l=0; l<temp.size(); l++) {
         for (int n=0; n<temp.at(l).size(); n++) {
             for (int w=0; w<temp.at(l).at(n).size(); w++) {
-                file << temp.at(l).at(n).at(w);
+                file << setprecision(15) << temp.at(l).at(n).at(w);
                 file << ',';
             }
             if (n!=temp.at(l).size()-1) file << '\n';
@@ -232,6 +249,7 @@ void network::setup(vector <int> nc)
 
 void network::set_values(vector <double> in)
 {
+    inputs.clear();
     inputs = in;
 }
 
@@ -261,10 +279,16 @@ vector <double> network::cycle_network()
         else {
             for (int n=0; n<layers.at(l).nodes.size(); n++) {
                 temp_inputs.push_back(layers.at(l).nodes.at(n).inputs);
-                if (l!=layers.size()-1) temp_weights.push_back(layers.at(l).nodes.at(n).weights);
             }
         }
         if (debug) cout << "got intputs" << endl;
+        
+        if (l!=layers.size()-1) {
+            for (int n=0; n<layers.at(l).nodes.size(); n++) {
+                temp_weights.push_back(layers.at(l).nodes.at(n).weights);
+            }
+        }
+        if (debug) cout << "got weights" << endl;
         
         // - sum inputs except for input layer, its inputs are doubles, the rest are vectors of doubles
         if (l!=0) {
@@ -289,11 +313,10 @@ vector <double> network::cycle_network()
                 temp_output.push_back(1/(1+exp(-temp_input.at(a))));
             }
         }
+        if (debug) cout << "sigmoid applied" << endl;
         
         // - create output vectors and apply weights
         if (l!=layers.size()-1) {
-            // for a 'fully connected' neural network.  may change
-            // for every node in the next layer
             for (int a=0; a<node_count.at(l+1); a++) {
                 // push back every output from every node int the last layer
                 vector <double> t;
